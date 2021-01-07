@@ -16,6 +16,7 @@ extension MTKView : RenderDestinationProvider {
 class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
     
     var session: ARSession!
+    var configuration = ARWorldTrackingConfiguration()
     var renderer: Renderer!
     
     override func viewDidLoad() {
@@ -79,7 +80,25 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
     
     func session(_ session: ARSession, didFailWithError error: Error) {
         // Present an error message to the user
-        
+        // Reference: https://developer.apple.com/documentation/arkit/creating_a_fog_effect_using_scene_depth
+        guard error is ARError else { return }
+        let errorWithInfo = error as NSError
+        let messages = [
+            errorWithInfo.localizedDescription,
+            errorWithInfo.localizedFailureReason,
+            errorWithInfo.localizedRecoverySuggestion
+        ]
+        let errorMessage = messages.compactMap({ $0 }).joined(separator: "\n")
+        DispatchQueue.main.async {
+            // Present an alert informing about the error that has occurred.
+            let alertController = UIAlertController(title: "The AR session failed.", message: errorMessage, preferredStyle: .alert)
+            let restartAction = UIAlertAction(title: "Restart Session", style: .default) { _ in
+                alertController.dismiss(animated: true, completion: nil)
+                self.session.run(self.configuration, options: .resetSceneReconstruction)
+            }
+            alertController.addAction(restartAction)
+            self.present(alertController, animated: true, completion: nil)
+        }
     }
     
     func sessionWasInterrupted(_ session: ARSession) {
@@ -90,5 +109,17 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
     func sessionInterruptionEnded(_ session: ARSession) {
         // Reset tracking and/or remove existing anchors if consistent tracking is required
         
+    }
+    
+    // MARK: - App Style Adjustment
+    
+    // Auto-hide the home indicator to maximize immersion in AR experiences.
+    override var prefersHomeIndicatorAutoHidden: Bool {
+        return true
+    }
+    
+    // Hide the status bar to maximize immersion in AR experiences.
+    override var prefersStatusBarHidden: Bool {
+        return true
     }
 }
