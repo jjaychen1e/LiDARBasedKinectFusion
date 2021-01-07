@@ -41,19 +41,19 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
             
             renderer.drawRectResized(size: view.bounds.size)
         }
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(ViewController.handleTap(gestureRecognize:)))
-        view.addGestureRecognizer(tapGesture)
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        // Create a session configuration
-        let configuration = ARWorldTrackingConfiguration()
+        // Enable the smoothed scene depth frame-semantic.
+        configuration.frameSemantics = .smoothedSceneDepth
 
         // Run the view's session
         session.run(configuration)
+        
+        // The screen shouldn't dim during AR experiences.
+        UIApplication.shared.isIdleTimerDisabled = true
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -61,22 +61,6 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
         
         // Pause the view's session
         session.pause()
-    }
-    
-    @objc
-    func handleTap(gestureRecognize: UITapGestureRecognizer) {
-        // Create anchor using the camera's current position
-        if let currentFrame = session.currentFrame {
-            
-            // Create a transform with a translation of 0.2 meters in front of the camera
-            var translation = matrix_identity_float4x4
-            translation.columns.3.z = -0.2
-            let transform = simd_mul(currentFrame.camera.transform, translation)
-            
-            // Add a new anchor to the session
-            let anchor = ARAnchor(transform: transform)
-            session.add(anchor: anchor)
-        }
     }
     
     // MARK: - MTKViewDelegate
