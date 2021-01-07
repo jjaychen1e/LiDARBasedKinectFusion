@@ -25,6 +25,12 @@ let kMaxBuffersInFlight: Int = 3
 let kMaxAnchorInstanceCount: Int = 64
 
 // The 16 byte aligned size of our uniform structures
+// Explanation:
+//   1. `... & ~0xFF` removes the lowest 16 bits
+//   2. `... + 0x100` makes it overflow and align to `0x100`, which is 256 bytes.
+// Note:
+//   Values like `0x100`, which is already aligned to `0x100`, will overflow to `0x200`, causing memory wasting.
+//   But this case is rare.
 let kAlignedSharedUniformsSize: Int = (MemoryLayout<SharedUniforms>.size & ~0xFF) + 0x100
 let kAlignedInstanceUniformsSize: Int = ((MemoryLayout<InstanceUniforms>.size * kMaxAnchorInstanceCount) & ~0xFF) + 0x100
 
@@ -324,6 +330,7 @@ class Renderer {
         }
     }
     
+    // Summary: Calculate which buffer index should be used.
     func updateBufferStates() {
         // Update the location(s) to which we'll write to in our dynamically changing Metal buffers for
         //   the current frame (i.e. update our slot in the ring buffer used for the current frame)
@@ -355,6 +362,7 @@ class Renderer {
         }
     }
     
+    // Summary: Update camera matrix and ambient light parameter in shared uniform.
     func updateSharedUniforms(frame: ARFrame) {
         // Update the shared uniforms of the frame
         
@@ -383,6 +391,7 @@ class Renderer {
         uniforms.pointee.materialShininess = 30
     }
     
+    // Summary: Update 3 most recently added aranchors' transform matrix in anchor uniform.
     func updateAnchors(frame: ARFrame) {
         // Update the anchor uniform buffer with transforms of the current frame's anchors
         anchorInstanceCount = min(frame.anchors.count, kMaxAnchorInstanceCount)
@@ -406,6 +415,7 @@ class Renderer {
         }
     }
     
+    // Summary: Update Y'CbCr textures from image captured via camera.
     func updateCapturedImageTextures(frame: ARFrame) {
         // Create two textures (Y and CbCr) from the provided frame's captured image
         let pixelBuffer = frame.capturedImage
@@ -432,6 +442,8 @@ class Renderer {
         return texture
     }
     
+    // NOTE: Captured image's aspect ratio doesn't match display viewport size, so we need to
+    //   convert between to coordinates system.
     func updateImagePlane(frame: ARFrame) {
         // Update the texture coordinates of our image plane to aspect fill the viewport
         let displayToCameraTransform = frame.displayTransform(for: .landscapeRight, viewportSize: viewportSize).inverted()
