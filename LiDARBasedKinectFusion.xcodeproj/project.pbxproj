@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		632848EF25A5A5DF00E6C644 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632848EE25A5A5DF00E6C644 /* AppDelegate.swift */; };
-		632848F125A5A5DF00E6C644 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 632848F025A5A5DF00E6C644 /* Shaders.metal */; };
+		632848F125A5A5DF00E6C644 /* CemeraImageRendererShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 632848F025A5A5DF00E6C644 /* CemeraImageRendererShaders.metal */; };
 		632848F425A5A5DF00E6C644 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632848F325A5A5DF00E6C644 /* Renderer.swift */; };
 		632848F625A5A5DF00E6C644 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632848F525A5A5DF00E6C644 /* ViewController.swift */; };
 		632848F925A5A5DF00E6C644 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 632848F725A5A5DF00E6C644 /* Main.storyboard */; };
@@ -23,7 +23,7 @@
 /* Begin PBXFileReference section */
 		632848EB25A5A5DF00E6C644 /* LiDARBasedKinectFusion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LiDARBasedKinectFusion.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		632848EE25A5A5DF00E6C644 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		632848F025A5A5DF00E6C644 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
+		632848F025A5A5DF00E6C644 /* CemeraImageRendererShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = CemeraImageRendererShaders.metal; sourceTree = "<group>"; };
 		632848F225A5A5DF00E6C644 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
 		632848F325A5A5DF00E6C644 /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
 		632848F525A5A5DF00E6C644 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -68,20 +68,14 @@
 		632848ED25A5A5DF00E6C644 /* LiDARBasedKinectFusion */ = {
 			isa = PBXGroup;
 			children = (
-				63AD092525B0349600BC52F1 /* Camera RGB */,
+				63AD092525B0349600BC52F1 /* Camera Image Renderer */,
 				6328490725A7740700E6C644 /* Kinect Fusion */,
+				63A8FCCA25B5D889002CFCE4 /* Supporting Files */,
+				63A8FCC925B5D872002CFCE4 /* Utils */,
 				632848EE25A5A5DF00E6C644 /* AppDelegate.swift */,
-				632848F025A5A5DF00E6C644 /* Shaders.metal */,
-				632848F225A5A5DF00E6C644 /* ShaderTypes.h */,
 				632848F325A5A5DF00E6C644 /* Renderer.swift */,
 				632848F525A5A5DF00E6C644 /* ViewController.swift */,
 				632848F725A5A5DF00E6C644 /* Main.storyboard */,
-				632848FA25A5A5E000E6C644 /* Assets.xcassets */,
-				632848FC25A5A5E000E6C644 /* LaunchScreen.storyboard */,
-				632848FF25A5A5E000E6C644 /* Info.plist */,
-				6328490025A5A5E000E6C644 /* LiDARBasedKinectFusion-Bridging-Header.h */,
-				63AD092225B02E6900BC52F1 /* MetalBuffer.swift */,
-				63A8FCC325B1403C002CFCE4 /* Helper.swift */,
 			);
 			path = LiDARBasedKinectFusion;
 			sourceTree = "<group>";
@@ -102,12 +96,34 @@
 			path = "Deptch to Vertex";
 			sourceTree = "<group>";
 		};
-		63AD092525B0349600BC52F1 /* Camera RGB */ = {
+		63A8FCC925B5D872002CFCE4 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				632848F225A5A5DF00E6C644 /* ShaderTypes.h */,
+				63AD092225B02E6900BC52F1 /* MetalBuffer.swift */,
+				63A8FCC325B1403C002CFCE4 /* Helper.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		63A8FCCA25B5D889002CFCE4 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				632848FA25A5A5E000E6C644 /* Assets.xcassets */,
+				632848FC25A5A5E000E6C644 /* LaunchScreen.storyboard */,
+				632848FF25A5A5E000E6C644 /* Info.plist */,
+				6328490025A5A5E000E6C644 /* LiDARBasedKinectFusion-Bridging-Header.h */,
+			);
+			path = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		63AD092525B0349600BC52F1 /* Camera Image Renderer */ = {
+			isa = PBXGroup;
+			children = (
+				632848F025A5A5DF00E6C644 /* CemeraImageRendererShaders.metal */,
 				63AD092725B034C000BC52F1 /* CameraImageRenderer.swift */,
 			);
-			path = "Camera RGB";
+			path = "Camera Image Renderer";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -181,7 +197,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6328490B25A775C300E6C644 /* DepthToVertexRenderer.swift in Sources */,
-				632848F125A5A5DF00E6C644 /* Shaders.metal in Sources */,
+				632848F125A5A5DF00E6C644 /* CemeraImageRendererShaders.metal in Sources */,
 				63AD092825B034C000BC52F1 /* CameraImageRenderer.swift in Sources */,
 				632848F425A5A5DF00E6C644 /* Renderer.swift in Sources */,
 				632848F625A5A5DF00E6C644 /* ViewController.swift in Sources */,
