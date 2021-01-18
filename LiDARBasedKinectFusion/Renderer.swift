@@ -21,15 +21,6 @@ protocol RenderDestinationProvider {
 // The max number of command buffers in flight
 let kMaxBuffersInFlight: Int = 3
 
-// The 256 byte aligned size of our uniform structure
-// Explanation:
-//   1. `... & ~0xFF` removes the lowest 16 bits
-//   2. `... + 0x100` makes it overflow and align to `0x100`, which is 256 bytes.
-// Note:
-//   Values like `0x100`, which is already aligned to `0x100`, will overflow to `0x200`, causing memory wasting.
-//   But this case is rare. And in the post  `https://stackoverflow.com/questions/46431114/how-does-this-code-find-the-memory-aligned-size-of-a-struct-in-swift-why-does-i` we can find that using `((MemoryLayout<Uniforms>.size + 255) / 256) * 256` can avoid this waste.
-let kAlignedCameraParameterUniformsSize: Int = (MemoryLayout<CameraParameterUniforms>.size & ~0xFF) + 0x100
-
 class Renderer {
     
     // The current viewport size
@@ -68,7 +59,7 @@ class Renderer {
         self.renderDestination.depthStencilPixelFormat = .depth32Float_stencil8
         
         for _ in 0..<kMaxBuffersInFlight {
-            cameraParameterUniformsBuffer.append(.init(device: device, count: kAlignedCameraParameterUniformsSize, index: kBufferIndexCameraParameterUniforms.rawValue, label: "SharedUniformBuffer", options: .storageModeShared))
+            cameraParameterUniformsBuffer.append(.init(device: device, count: MemoryLayout<CameraParameterUniforms>.size, index: kBufferIndexCameraParameterUniforms.rawValue, label: "SharedUniformBuffer", options: .storageModeShared))
         }
         
         self.cameraImageRenderer = CameraImageRenderer(renderer: self)
