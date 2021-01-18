@@ -14,6 +14,10 @@
 		632848F925A5A5DF00E6C644 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 632848F725A5A5DF00E6C644 /* Main.storyboard */; };
 		632848FB25A5A5E000E6C644 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 632848FA25A5A5E000E6C644 /* Assets.xcassets */; };
 		632848FE25A5A5E000E6C644 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 632848FC25A5A5E000E6C644 /* LaunchScreen.storyboard */; };
+		6328490B25A775C300E6C644 /* DepthToVertexRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6328490A25A775C300E6C644 /* DepthToVertexRenderer.swift */; };
+		63A8FCC425B1403C002CFCE4 /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A8FCC325B1403C002CFCE4 /* Helper.swift */; };
+		63AD092325B02E6900BC52F1 /* MetalBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63AD092225B02E6900BC52F1 /* MetalBuffer.swift */; };
+		63AD092825B034C000BC52F1 /* CameraImageRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63AD092725B034C000BC52F1 /* CameraImageRenderer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +32,10 @@
 		632848FD25A5A5E000E6C644 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		632848FF25A5A5E000E6C644 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6328490025A5A5E000E6C644 /* LiDARBasedKinectFusion-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "LiDARBasedKinectFusion-Bridging-Header.h"; sourceTree = "<group>"; };
+		6328490A25A775C300E6C644 /* DepthToVertexRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepthToVertexRenderer.swift; sourceTree = "<group>"; };
+		63A8FCC325B1403C002CFCE4 /* Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helper.swift; sourceTree = "<group>"; };
+		63AD092225B02E6900BC52F1 /* MetalBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalBuffer.swift; sourceTree = "<group>"; };
+		63AD092725B034C000BC52F1 /* CameraImageRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraImageRenderer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,6 +68,8 @@
 		632848ED25A5A5DF00E6C644 /* LiDARBasedKinectFusion */ = {
 			isa = PBXGroup;
 			children = (
+				63AD092525B0349600BC52F1 /* Camera RGB */,
+				6328490725A7740700E6C644 /* Kinect Fusion */,
 				632848EE25A5A5DF00E6C644 /* AppDelegate.swift */,
 				632848F025A5A5DF00E6C644 /* Shaders.metal */,
 				632848F225A5A5DF00E6C644 /* ShaderTypes.h */,
@@ -70,8 +80,34 @@
 				632848FC25A5A5E000E6C644 /* LaunchScreen.storyboard */,
 				632848FF25A5A5E000E6C644 /* Info.plist */,
 				6328490025A5A5E000E6C644 /* LiDARBasedKinectFusion-Bridging-Header.h */,
+				63AD092225B02E6900BC52F1 /* MetalBuffer.swift */,
+				63A8FCC325B1403C002CFCE4 /* Helper.swift */,
 			);
 			path = LiDARBasedKinectFusion;
+			sourceTree = "<group>";
+		};
+		6328490725A7740700E6C644 /* Kinect Fusion */ = {
+			isa = PBXGroup;
+			children = (
+				6328490825A7741500E6C644 /* Deptch to Vertex */,
+			);
+			path = "Kinect Fusion";
+			sourceTree = "<group>";
+		};
+		6328490825A7741500E6C644 /* Deptch to Vertex */ = {
+			isa = PBXGroup;
+			children = (
+				6328490A25A775C300E6C644 /* DepthToVertexRenderer.swift */,
+			);
+			path = "Deptch to Vertex";
+			sourceTree = "<group>";
+		};
+		63AD092525B0349600BC52F1 /* Camera RGB */ = {
+			isa = PBXGroup;
+			children = (
+				63AD092725B034C000BC52F1 /* CameraImageRenderer.swift */,
+			);
+			path = "Camera RGB";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -144,10 +180,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6328490B25A775C300E6C644 /* DepthToVertexRenderer.swift in Sources */,
 				632848F125A5A5DF00E6C644 /* Shaders.metal in Sources */,
+				63AD092825B034C000BC52F1 /* CameraImageRenderer.swift in Sources */,
 				632848F425A5A5DF00E6C644 /* Renderer.swift in Sources */,
 				632848F625A5A5DF00E6C644 /* ViewController.swift in Sources */,
 				632848EF25A5A5DF00E6C644 /* AppDelegate.swift in Sources */,
+				63AD092325B02E6900BC52F1 /* MetalBuffer.swift in Sources */,
+				63A8FCC425B1403C002CFCE4 /* Helper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
