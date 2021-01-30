@@ -20,25 +20,24 @@ typedef enum BufferIndices {
     kBufferIndexCameraParameterUniforms = 0,
 } BufferIndices;
 
-// Attribute index values shared between shader and C code to ensure Metal shader vertex
-//   attribute indices match the Metal API vertex descriptor attribute indices
-typedef enum VertexAttributes {
-    kVertexAttributePosition  = 0,
-    kVertexAttributeTexcoord  = 1,
-    kVertexAttributeNormal    = 2
-} VertexAttributes;
-
 // Texture index values shared between shader and C code to ensure Metal shader texture indices
 //   match indices of Metal API texture set calls
 typedef enum TextureIndices {
-    kTextureIndexColor    = 0,
-    kTextureIndexY        = 1,
-    kTextureIndexCbCr     = 2
+    kTextureIndexY                          = 0,
+    kTextureIndexCbCr                       = 1,
+    kTextureIndexDepthMap                   = 2,
+    kTextureIndexConfidenceMap              = 3,
+    kTextureIndexVertexMap                  = 4,
+    kTextureIndexNormalMap                  = 5,
 } TextureIndices;
 
 struct CameraParameterUniforms {
     // This is a transpose of a normal tranlation matrix because it's converted from CGAffineTransform
     matrix_float3x3 viewToCamera;
+    matrix_float3x3 cameraIntrinsicsInversed;
+    matrix_float4x4 cameraToWorld;
+    matrix_float4x4 viewProjectionMatrix;
+    simd_float2     cameraResolution;
 };
 
 #endif /* ShaderTypes_h */

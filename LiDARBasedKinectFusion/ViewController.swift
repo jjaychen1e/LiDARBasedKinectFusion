@@ -48,7 +48,7 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
         super.viewWillAppear(animated)
         
         // Enable the smoothed scene depth frame-semantic.
-        configuration.frameSemantics = .smoothedSceneDepth
+        configuration.frameSemantics = .sceneDepth
 
         // Run the view's session
         session.run(configuration)

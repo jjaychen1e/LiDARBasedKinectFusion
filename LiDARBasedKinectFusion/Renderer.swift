@@ -45,9 +45,19 @@ class Renderer {
         return cameraParameterUniforms
     }()
     var cameraParameterUniformsBuffer = [MetalBuffer<CameraParameterUniforms>]()
+    var currentParameterUniformBuffer: MetalBuffer<CameraParameterUniforms> {
+        cameraParameterUniformsBuffer[currentBufferIndex]
+    }
     lazy var relaxedStencilState: MTLDepthStencilState = makeRelaxedStencilState()!
+    private lazy var rotateToARCamera = Self.makeRotateToARCameraMatrix(orientation: orientation)
+    
+    public var depthTexture: CVMetalTexture?
+    public var confidenceTexture: CVMetalTexture?
+    public var vertexTexture: Texture?
+    public var normalTexture: Texture?
     
     private var cameraImageRenderer: CameraImageRenderer!
+    private var depthToVertexRenderer: DepthToVertexRenderer!
     
     init(session: ARSession, metalDevice device: MTLDevice, renderDestination: RenderDestinationProvider) {
         self.session = session
@@ -63,6 +73,7 @@ class Renderer {
         }
         
         self.cameraImageRenderer = CameraImageRenderer(renderer: self)
+        self.depthToVertexRenderer = DepthToVertexRenderer(renderer: self)
     }
     
     func drawRectResized(size: CGSize) {
@@ -86,11 +97,29 @@ class Renderer {
             
             currentBufferIndex = (currentBufferIndex + 1) % kMaxBuffersInFlight
             
-            if let currentFrame = session.currentFrame {
-                cameraParameterUniformsBuffer[currentBufferIndex][0] = cameraParameterUniforms
-            }
-            
             cameraImageRenderer.encodeCommands(into: commandBuffer)
+            
+            if let currentFrame = session.currentFrame {
+                let camera = currentFrame.camera
+                /// Camera space to image space. Camera's intrinsics uses pihole model, whose Y-Axis is upside-down, so we need to flip it.
+                let cameraIntrinsicsInversed = rotateToARCamera * camera.intrinsics.inverse
+                /// World space to camera space.
+                let viewMatrix = camera.viewMatrix(for: orientation)
+                /// Camera space to world space.
+                let viewMatrixInversed = viewMatrix.inverse
+                // Camera space to NDC space(used via Metal)
+                let projectionMatrix = camera.projectionMatrix(for: orientation, viewportSize: viewportSize, zNear: 0.001, zFar: 0)
+                
+                cameraParameterUniforms.cameraIntrinsicsInversed = cameraIntrinsicsInversed
+                cameraParameterUniforms.cameraToWorld = viewMatrixInversed
+                cameraParameterUniforms.viewProjectionMatrix = projectionMatrix * viewMatrix
+                cameraParameterUniforms.cameraResolution = Float2(Float(currentFrame.camera.imageResolution.width), Float(currentFrame.camera.imageResolution.height))
+                cameraParameterUniformsBuffer[currentBufferIndex][0] = cameraParameterUniforms
+                if updateDepthTextures(frame: currentFrame) {
+                    // Unproject Points
+                    depthToVertexRenderer.encodeCommands(into: commandBuffer)
+                }
+            }
             
             // Finalize rendering here & push the command buffer to the GPU
             commandBuffer.commit()
@@ -128,4 +157,42 @@ extension Renderer {
         return texture
     }
     
+    static private func cameraToDisplayRotation(orientation: UIInterfaceOrientation) -> Int {
+        switch orientation {
+        case .landscapeLeft:
+            return 180
+        case .portrait:
+            return 90
+        case .portraitUpsideDown:
+            return -90
+        default:
+            return 0
+        }
+    }
+    
+    /// Camera's intrisics matrix is based on pinhole model. And in the implementation, Y-Axis is upside-down, so we need to
+    /// flip Y-Axis too.
+    static private func makeRotateToARCameraMatrix(orientation: UIInterfaceOrientation) -> Float3x3 {
+        // flip to ARKit Camera's coordinate
+        let flipYZ = Float3x3(
+            [1, 0,  0],
+            [0, -1, 0],
+            [0, 0, -1]
+        )
+
+        let rotationAngle = Float(cameraToDisplayRotation(orientation: orientation)) * .degreesToRadian
+        return flipYZ * Float3x3(simd_quaternion(rotationAngle, Float3(0, 0, 1)))
+    }
+    
+    private func updateDepthTextures(frame: ARFrame) -> Bool {
+        guard let depthMap = frame.sceneDepth?.depthMap,
+            let confidenceMap = frame.sceneDepth?.confidenceMap else {
+                return false
+        }
+        
+        depthTexture = createTexture(fromPixelBuffer: depthMap, pixelFormat: .r32Float, planeIndex: 0)
+        confidenceTexture = createTexture(fromPixelBuffer: confidenceMap, pixelFormat: .r8Uint, planeIndex: 0)
+        
+        return true
+    }
 }

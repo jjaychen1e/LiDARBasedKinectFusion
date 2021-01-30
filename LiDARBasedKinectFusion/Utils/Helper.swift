@@ -8,6 +8,12 @@ import ARKit
 
 typealias Float2 = SIMD2<Float>
 typealias Float3 = SIMD3<Float>
+typealias Float3x3 = simd_float3x3
+typealias Float4x4 = simd_float4x4
+
+extension Float {
+    static let degreesToRadian = Float.pi / 180
+}
 
 extension matrix_float3x3 {
     mutating func copy(from affine: CGAffineTransform) {

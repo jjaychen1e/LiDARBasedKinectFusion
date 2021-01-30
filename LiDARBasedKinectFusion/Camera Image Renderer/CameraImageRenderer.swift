@@ -38,17 +38,12 @@ class CameraImageRenderer {
             updateCapturedImageTextures(frame: currentFrame)
         }
         
-        // Add completion handler which signal _inFlightSemaphore when Metal and the GPU has fully
-        //   finished processing the commands we're encoding this frame.  This indicates when the
-        //   dynamic buffers, that we're writing to this frame, will no longer be needed by Metal
-        //   and the GPU.
         // Retain our CVMetalTextures for the duration of the rendering cycle. The MTLTextures
         //   we use from the CVMetalTextures are not valid unless their parent CVMetalTextures
         //   are retained. Since we may release our CVMetalTexture ivars during the rendering
         //   cycle, we must retain them separately here.
         var textures = [capturedImageTextureY, capturedImageTextureCbCr]
         commandBuffer.addCompletedHandler{ _ in
-            // TODO: - Do we need weak self?
             textures.removeAll()
         }
         
@@ -94,11 +89,11 @@ class CameraImageRenderer {
         renderEncoder.setDepthStencilState(relaxedStencilState)
         
         // Set mesh's vertex buffers
-        renderEncoder.setVertexBuffer(cameraParameterUniformsBuffer[currentBufferIndex])
+        renderEncoder.setVertexResource(cameraParameterUniformsBuffer[currentBufferIndex])
         
         // Set any textures read/sampled from our render pipeline
-        renderEncoder.setFragmentTexture(CVMetalTextureGetTexture(textureY), index: Int(kTextureIndexY.rawValue))
-        renderEncoder.setFragmentTexture(CVMetalTextureGetTexture(textureCbCr), index: Int(kTextureIndexCbCr.rawValue))
+        renderEncoder.setFragmentResource(Texture(texture: CVMetalTextureGetTexture(textureY)!, index: kTextureIndexY.rawValue))
+        renderEncoder.setFragmentResource(Texture(texture: CVMetalTextureGetTexture(textureCbCr)!, index: kTextureIndexCbCr.rawValue))
         
         // Draw each submesh of our mesh
         renderEncoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
