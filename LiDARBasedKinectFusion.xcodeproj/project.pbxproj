@@ -19,6 +19,7 @@
 		63A8FCC425B1403C002CFCE4 /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A8FCC325B1403C002CFCE4 /* Helper.swift */; };
 		63AD092325B02E6900BC52F1 /* MetalBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63AD092225B02E6900BC52F1 /* MetalBuffer.swift */; };
 		63AD092825B034C000BC52F1 /* CameraImageRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63AD092725B034C000BC52F1 /* CameraImageRenderer.swift */; };
+		63C520BC25C97EDD007F2BD0 /* TSDFFusionRendererShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 63C520BB25C97EDD007F2BD0 /* TSDFFusionRendererShaders.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +39,7 @@
 		63A8FCC325B1403C002CFCE4 /* Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helper.swift; sourceTree = "<group>"; };
 		63AD092225B02E6900BC52F1 /* MetalBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalBuffer.swift; sourceTree = "<group>"; };
 		63AD092725B034C000BC52F1 /* CameraImageRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraImageRenderer.swift; sourceTree = "<group>"; };
+		63C520BB25C97EDD007F2BD0 /* TSDFFusionRendererShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = TSDFFusionRendererShaders.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +88,7 @@
 			isa = PBXGroup;
 			children = (
 				6328490825A7741500E6C644 /* Deptch to Vertex */,
+				637A341625C54CE20089E28C /* TSDF Fusion */,
 			);
 			path = "Kinect Fusion";
 			sourceTree = "<group>";
@@ -97,6 +100,14 @@
 				6379D67325B5DC470047D675 /* DepthToVertexRendererShaders.metal */,
 			);
 			path = "Deptch to Vertex";
+			sourceTree = "<group>";
+		};
+		637A341625C54CE20089E28C /* TSDF Fusion */ = {
+			isa = PBXGroup;
+			children = (
+				63C520BB25C97EDD007F2BD0 /* TSDFFusionRendererShaders.metal */,
+			);
+			path = "TSDF Fusion";
 			sourceTree = "<group>";
 		};
 		63A8FCC925B5D872002CFCE4 /* Utils */ = {
@@ -207,6 +218,7 @@
 				6379D67425B5DC470047D675 /* DepthToVertexRendererShaders.metal in Sources */,
 				632848EF25A5A5DF00E6C644 /* AppDelegate.swift in Sources */,
 				63AD092325B02E6900BC52F1 /* MetalBuffer.swift in Sources */,
+				63C520BC25C97EDD007F2BD0 /* TSDFFusionRendererShaders.metal in Sources */,
 				63A8FCC425B1403C002CFCE4 /* Helper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

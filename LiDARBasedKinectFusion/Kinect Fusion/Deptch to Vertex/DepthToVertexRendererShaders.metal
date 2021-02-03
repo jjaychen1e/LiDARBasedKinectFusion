@@ -27,7 +27,7 @@ unprojectKernel(constant CameraParameterUniforms      &uniforms         [[buffer
                 uint2                                 gid               [[thread_position_in_grid]])
 {
     unsigned int confidence  = confidenceTexture.read(gid).x;
-    if (confidence >= 1) {
+    if (confidence >= CONFIDENCE_THRESHOLD) {
         float depth  = depthTexture.read(gid).x;
         simd_float2 normalSpacePosition = simd_float2((float)(gid.x) / (depthTexture.get_width() - 1),
                                                       (float)(gid.y) / (depthTexture.get_height() - 1));

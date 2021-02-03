@@ -102,6 +102,7 @@ class Renderer {
             if let currentFrame = session.currentFrame {
                 let camera = currentFrame.camera
                 /// Camera space to image space. Camera's intrinsics uses pihole model, whose Y-Axis is upside-down, so we need to flip it.
+                let cameraIntrinsics = camera.intrinsics * rotateToARCamera
                 let cameraIntrinsicsInversed = rotateToARCamera * camera.intrinsics.inverse
                 /// World space to camera space.
                 let viewMatrix = camera.viewMatrix(for: orientation)
@@ -110,8 +111,10 @@ class Renderer {
                 // Camera space to NDC space(used via Metal)
                 let projectionMatrix = camera.projectionMatrix(for: orientation, viewportSize: viewportSize, zNear: 0.001, zFar: 0)
                 
+                cameraParameterUniforms.cameraIntrinsics = cameraIntrinsics
                 cameraParameterUniforms.cameraIntrinsicsInversed = cameraIntrinsicsInversed
                 cameraParameterUniforms.cameraToWorld = viewMatrixInversed
+                cameraParameterUniforms.worldToCamera = viewMatrix
                 cameraParameterUniforms.viewProjectionMatrix = projectionMatrix * viewMatrix
                 cameraParameterUniforms.cameraResolution = Float2(Float(currentFrame.camera.imageResolution.width), Float(currentFrame.camera.imageResolution.height))
                 cameraParameterUniformsBuffer[currentBufferIndex][0] = cameraParameterUniforms

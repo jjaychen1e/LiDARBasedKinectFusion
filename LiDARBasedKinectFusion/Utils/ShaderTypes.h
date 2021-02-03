@@ -13,11 +13,17 @@
 
 #include <simd/simd.h>
 
+#define CONFIDENCE_THRESHOLD 1
+
+#define TSDF_SIZE 570
+
 
 // Buffer index values shared between shader and C code to ensure Metal shader buffer inputs match
 //   Metal API buffer set calls
 typedef enum BufferIndices {
     kBufferIndexCameraParameterUniforms = 0,
+    kBufferIndexTSDFBox                 = 1,
+    kBufferIndexTSDFParameterUniforms   = 2,
 } BufferIndices;
 
 // Texture index values shared between shader and C code to ensure Metal shader texture indices
@@ -34,10 +40,32 @@ typedef enum TextureIndices {
 struct CameraParameterUniforms {
     // This is a transpose of a normal tranlation matrix because it's converted from CGAffineTransform
     matrix_float3x3 viewToCamera;
+    matrix_float3x3 cameraIntrinsics;
     matrix_float3x3 cameraIntrinsicsInversed;
     matrix_float4x4 cameraToWorld;
+    matrix_float4x4 worldToCamera;
     matrix_float4x4 viewProjectionMatrix;
     simd_float2     cameraResolution;
+};
+
+struct TSDFParameterUniforms {
+    /// The origin of the TSDF box. It locates in one corner of the box(whose coornidate components' value is smallest) instead of  the center of the box.
+    /// It's designed for the convienience of calculating positions of all voxels.
+    simd_float3 origin;
+    /// The size of each voxel(a cube).
+    float sizePerVoxel;
+    /// The threshold used to truncate the DSF.
+    float truncateThreshold;
+    /// The size of the whole TSDF box. Usually, it is a cube.
+    simd_uint3 size;
+    float maxWight;
+};
+
+// ((1024*1024*1024*8)/(32*2))^(1/3) = 512
+// ((1426*1024*1024*8)/(64))^(1/3) = 571 (iPad Pro 2020 11')
+struct TSDFVoxel {
+    float value;
+    float weight;
 };
 
 #endif /* ShaderTypes_h */
