@@ -18,13 +18,14 @@ tsdfFusionKernel(device TSDFVoxel                      *tsdfBox               [[
                  texture2d<float, access::read>        depthTexture           [[texture(kTextureIndexDepthMap)]],
                  texture2d<unsigned int, access::read> confidenceTexture      [[texture(kTextureIndexConfidenceMap)]],
                  texture2d<float, access::read>        vertexTexture          [[texture(kTextureIndexVertexMap)]],
-                 uint3                                 gid                    [[thread_position_in_grid]])
+                 uint3                                 gid                    [[thread_position_in_grid]],
+                 uint3                                 gridSize               [[threads_per_grid]])
 {
     simd_float3 voxelPositionOffset = simd_float3(gid.x, gid.y, gid.z) * tsdfParameterUniforms.sizePerVoxel;
     simd_float3 worldSpaceVoxelPosition = tsdfParameterUniforms.origin + voxelPositionOffset;
     simd_float4 cameraSpaceVoxelPosition = cameraUniforms.worldToCamera * simd_float4(worldSpaceVoxelPosition, 1);
     cameraSpaceVoxelPosition /= cameraSpaceVoxelPosition.w;
-    
+
     // Compare to camera resolution
     simd_float3 cameraPixelPosition = cameraUniforms.cameraIntrinsics * cameraSpaceVoxelPosition.xyz / cameraSpaceVoxelPosition.z;
     cameraPixelPosition /= cameraPixelPosition.z;
@@ -35,8 +36,8 @@ tsdfFusionKernel(device TSDFVoxel                      *tsdfBox               [[
             float depth = -depthTexture.read(uv).x;
             float tsdf = clamp(cameraSpaceVoxelPosition.z - depth, -tsdfParameterUniforms.truncateThreshold, tsdfParameterUniforms.truncateThreshold);
             float normalizedTSDF = tsdf / tsdfParameterUniforms.truncateThreshold;
-            uint index = gid.z * tsdfParameterUniforms.size.x * tsdfParameterUniforms.size.y + gid.y * tsdfParameterUniforms.size.x + gid.x;
-            float weight = min(tsdfParameterUniforms.maxWight, tsdfBox[index].weight + 1);
+            uint index = gid.z * gridSize.x * gridSize.y + gid.y * gridSize.x + gid.x;
+            float weight = min(tsdfParameterUniforms.maxWeight, tsdfBox[index].weight + 1);
             tsdfBox[index].value = (tsdfBox[index].value * tsdfBox[index].weight + normalizedTSDF * weight) / (tsdfBox[index].weight + weight);
             tsdfBox[index].weight = weight;
         }

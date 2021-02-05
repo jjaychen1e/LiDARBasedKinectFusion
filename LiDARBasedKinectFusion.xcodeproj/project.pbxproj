@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		630B2E5E25CAFDFA001EF45D /* TSDFFusionRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 630B2E5D25CAFDFA001EF45D /* TSDFFusionRenderer.swift */; };
 		632848EF25A5A5DF00E6C644 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632848EE25A5A5DF00E6C644 /* AppDelegate.swift */; };
 		632848F125A5A5DF00E6C644 /* CemeraImageRendererShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 632848F025A5A5DF00E6C644 /* CemeraImageRendererShaders.metal */; };
 		632848F425A5A5DF00E6C644 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632848F325A5A5DF00E6C644 /* Renderer.swift */; };
@@ -23,6 +24,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		630B2E5D25CAFDFA001EF45D /* TSDFFusionRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TSDFFusionRenderer.swift; sourceTree = "<group>"; };
 		632848EB25A5A5DF00E6C644 /* LiDARBasedKinectFusion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LiDARBasedKinectFusion.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		632848EE25A5A5DF00E6C644 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		632848F025A5A5DF00E6C644 /* CemeraImageRendererShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = CemeraImageRendererShaders.metal; sourceTree = "<group>"; };
@@ -106,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				63C520BB25C97EDD007F2BD0 /* TSDFFusionRendererShaders.metal */,
+				630B2E5D25CAFDFA001EF45D /* TSDFFusionRenderer.swift */,
 			);
 			path = "TSDF Fusion";
 			sourceTree = "<group>";
@@ -214,6 +217,7 @@
 				632848F125A5A5DF00E6C644 /* CemeraImageRendererShaders.metal in Sources */,
 				63AD092825B034C000BC52F1 /* CameraImageRenderer.swift in Sources */,
 				632848F425A5A5DF00E6C644 /* Renderer.swift in Sources */,
+				630B2E5E25CAFDFA001EF45D /* TSDFFusionRenderer.swift in Sources */,
 				632848F625A5A5DF00E6C644 /* ViewController.swift in Sources */,
 				6379D67425B5DC470047D675 /* DepthToVertexRendererShaders.metal in Sources */,
 				632848EF25A5A5DF00E6C644 /* AppDelegate.swift in Sources */,

@@ -16,6 +16,8 @@
 #define CONFIDENCE_THRESHOLD 1
 
 #define TSDF_SIZE 570
+#define TSDF_PER_LENGTH 0.00390625
+#define TSDF_MAX_WEIGHT 512
 
 
 // Buffer index values shared between shader and C code to ensure Metal shader buffer inputs match
@@ -58,14 +60,14 @@ struct TSDFParameterUniforms {
     float truncateThreshold;
     /// The size of the whole TSDF box. Usually, it is a cube.
     simd_uint3 size;
-    float maxWight;
+    int maxWeight;
 };
 
 // ((1024*1024*1024*8)/(32*2))^(1/3) = 512
 // ((1426*1024*1024*8)/(64))^(1/3) = 571 (iPad Pro 2020 11')
 struct TSDFVoxel {
     float value;
-    float weight;
+    int weight;
 };
 
 #endif /* ShaderTypes_h */

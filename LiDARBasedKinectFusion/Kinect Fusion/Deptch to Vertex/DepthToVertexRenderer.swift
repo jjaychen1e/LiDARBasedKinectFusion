@@ -17,7 +17,7 @@ class DepthToVertexRenderer {
     
     private var device: MTLDevice { renderer.device }
     private var library: MTLLibrary { renderer.library }
-    private var currentParameterUniformBuffer: MetalBuffer<CameraParameterUniforms> { renderer.currentParameterUniformBuffer }
+    private var currentParameterUniformBuffer: MetalBuffer<CameraParameterUniforms> { renderer.currentCameraParameterUniformBuffer }
     private var depthTexture: CVMetalTexture? { renderer.depthTexture }
     private var confidenceTexture: CVMetalTexture? { renderer.confidenceTexture }
     private var vertexTexture: Texture? { renderer.vertexTexture }
@@ -57,7 +57,7 @@ class DepthToVertexRenderer {
             let h = unprojectComputePipelineState.maxTotalThreadsPerThreadgroup / w
             let threadsPerThreadgroup = MTLSizeMake(w, h, 1)
             let threadsPerGrid = MTLSize(width: depthTexture.width, height: depthTexture.height, depth: 1)
-            encoder.dispatchThreadgroups(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+            encoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
             encoder.endEncoding()
         }
     }

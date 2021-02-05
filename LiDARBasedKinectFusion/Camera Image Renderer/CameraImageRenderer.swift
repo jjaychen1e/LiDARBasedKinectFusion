@@ -19,8 +19,7 @@ class CameraImageRenderer {
     private var renderDestination: RenderDestinationProvider { renderer.renderDestination }
     private var library: MTLLibrary { renderer.library }
     private var relaxedStencilState: MTLDepthStencilState { renderer.relaxedStencilState }
-    private var currentBufferIndex: Int { renderer.currentBufferIndex }
-    private var cameraParameterUniformsBuffer: [MetalBuffer<CameraParameterUniforms>] { renderer.cameraParameterUniformsBuffer }
+    private var currentCameraParameterUniformBuffer: MetalBuffer<CameraParameterUniforms> { renderer.currentCameraParameterUniformBuffer }
     
     // MARK: - Self owned properties
     private lazy var cameraImagePipelineState: MTLRenderPipelineState =  makeCameraImageRenderPipelineState()!
@@ -89,7 +88,7 @@ class CameraImageRenderer {
         renderEncoder.setDepthStencilState(relaxedStencilState)
         
         // Set mesh's vertex buffers
-        renderEncoder.setVertexResource(cameraParameterUniformsBuffer[currentBufferIndex])
+        renderEncoder.setVertexResource(currentCameraParameterUniformBuffer)
         
         // Set any textures read/sampled from our render pipeline
         renderEncoder.setFragmentResource(Texture(texture: CVMetalTextureGetTexture(textureY)!, index: kTextureIndexY.rawValue))

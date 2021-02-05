@@ -44,20 +44,41 @@ class Renderer {
         cameraParameterUniforms.viewToCamera.copy(from: viewToCamera)
         return cameraParameterUniforms
     }()
-    var cameraParameterUniformsBuffer = [MetalBuffer<CameraParameterUniforms>]()
-    var currentParameterUniformBuffer: MetalBuffer<CameraParameterUniforms> {
+    private var cameraParameterUniformsBuffer = [MetalBuffer<CameraParameterUniforms>]()
+    public var currentCameraParameterUniformBuffer: MetalBuffer<CameraParameterUniforms> {
         cameraParameterUniformsBuffer[currentBufferIndex]
     }
     lazy var relaxedStencilState: MTLDepthStencilState = makeRelaxedStencilState()!
     private lazy var rotateToARCamera = Self.makeRotateToARCameraMatrix(orientation: orientation)
     
+    // Depth things
     public var depthTexture: CVMetalTexture?
     public var confidenceTexture: CVMetalTexture?
     public var vertexTexture: Texture?
     public var normalTexture: Texture?
     
+    // TSDF things
+    public lazy var tsdfParameterUniformsBuffer: MetalBuffer<TSDFParameterUniforms> = {
+        var tsdfParameterUniforms = TSDFParameterUniforms()
+        tsdfParameterUniforms.size = simd_uint3(UInt32(TSDF_SIZE), UInt32(TSDF_SIZE), UInt32(TSDF_SIZE))
+        tsdfParameterUniforms.sizePerVoxel = Float(TSDF_PER_LENGTH)
+        tsdfParameterUniforms.origin = simd_float3(-0.5 * Float(TSDF_SIZE - 1) * Float(TSDF_PER_LENGTH),
+                                                   -0.5 * Float(TSDF_SIZE - 1) * Float(TSDF_PER_LENGTH),
+                                                   -0.5 * Float(TSDF_SIZE - 1) * Float(TSDF_PER_LENGTH))
+        tsdfParameterUniforms.truncateThreshold = 3 * Float(TSDF_PER_LENGTH)
+        tsdfParameterUniforms.maxWeight = TSDF_MAX_WEIGHT
+        
+        let buffer = MetalBuffer<TSDFParameterUniforms>(device: device, count: MemoryLayout<TSDFParameterUniforms>.size, index: kBufferIndexTSDFParameterUniforms.rawValue, label: "TSDFParameterUniformsBuffer", options: .storageModeShared)
+        buffer.assign(tsdfParameterUniforms)
+        
+        return buffer
+    }()
+    public var tsdfBoxBuffer: MetalBuffer<TSDFVoxel>
+    
+    // Renderers
     private var cameraImageRenderer: CameraImageRenderer!
     private var depthToVertexRenderer: DepthToVertexRenderer!
+    private var tsdfFusionRenderer: TSDFFusionRenderer!
     
     init(session: ARSession, metalDevice device: MTLDevice, renderDestination: RenderDestinationProvider) {
         self.session = session
@@ -69,11 +90,19 @@ class Renderer {
         self.renderDestination.depthStencilPixelFormat = .depth32Float_stencil8
         
         for _ in 0..<kMaxBuffersInFlight {
-            cameraParameterUniformsBuffer.append(.init(device: device, count: MemoryLayout<CameraParameterUniforms>.size, index: kBufferIndexCameraParameterUniforms.rawValue, label: "SharedUniformBuffer", options: .storageModeShared))
+            cameraParameterUniformsBuffer.append(.init(device: device, count: MemoryLayout<CameraParameterUniforms>.size, index: kBufferIndexCameraParameterUniforms.rawValue, label: "CameraParameterUniformsBuffer", options: .storageModeShared))
         }
+        
+        self.tsdfBoxBuffer = .init(device: device,
+                                   array: Array<TSDFVoxel>(repeating: TSDFVoxel(value: 1, weight: 0),
+                                                           count: Int(TSDF_SIZE) * Int(TSDF_SIZE) * Int(TSDF_SIZE)),
+                                   index: kBufferIndexTSDFBox.rawValue,
+                                   label: "TSDFBoxBuffer",
+                                   options: .storageModePrivate)
         
         self.cameraImageRenderer = CameraImageRenderer(renderer: self)
         self.depthToVertexRenderer = DepthToVertexRenderer(renderer: self)
+        self.tsdfFusionRenderer = TSDFFusionRenderer(renderer: self)
     }
     
     func drawRectResized(size: CGSize) {
@@ -122,6 +151,7 @@ class Renderer {
                     // Unproject Points
                     depthToVertexRenderer.encodeCommands(into: commandBuffer)
                 }
+                tsdfFusionRenderer.encodeCommands(into: commandBuffer)
             }
             
             // Finalize rendering here & push the command buffer to the GPU
@@ -178,9 +208,9 @@ extension Renderer {
     static private func makeRotateToARCameraMatrix(orientation: UIInterfaceOrientation) -> Float3x3 {
         // flip to ARKit Camera's coordinate
         let flipYZ = Float3x3(
-            [1, 0,  0],
-            [0, -1, 0],
-            [0, 0, -1]
+            [1,  0,  0],
+            [0, -1,  0],
+            [0,  0, -1]
         )
 
         let rotationAngle = Float(cameraToDisplayRotation(orientation: orientation)) * .degreesToRadian
