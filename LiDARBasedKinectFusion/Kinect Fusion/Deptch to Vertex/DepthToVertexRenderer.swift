@@ -21,7 +21,6 @@ class DepthToVertexRenderer {
     private var depthTexture: CVMetalTexture? { renderer.depthTexture }
     private var confidenceTexture: CVMetalTexture? { renderer.confidenceTexture }
     private var vertexTexture: Texture? { renderer.vertexTexture }
-    private var normalTexture: Texture? { renderer.normalTexture }
     
     // MARK: - Self owned properties
     
@@ -33,7 +32,7 @@ class DepthToVertexRenderer {
         self.renderer = renderer
     }
     
-    private func resetVertexTextureAndNormalTexture() {
+    private func resetVertexTexture() {
         let textureDescriptor = MTLTextureDescriptor()
         textureDescriptor.textureType = .type2D
         textureDescriptor.pixelFormat = .rgba32Float
@@ -41,7 +40,6 @@ class DepthToVertexRenderer {
         textureDescriptor.height = CVMetalTextureGetTexture(depthTexture!)!.height
         textureDescriptor.usage = [.shaderRead, .shaderWrite]
         renderer.vertexTexture = Texture(texture: device.makeTexture(descriptor: textureDescriptor)!, index: kTextureIndexVertexMap.rawValue)
-        renderer.normalTexture = Texture(texture: device.makeTexture(descriptor: textureDescriptor)!, index: kTextureIndexNormalMap.rawValue)
     }
     
     private func compute(depth depthTexture: CVMetalTexture, andConfidenceTexture confidenceTexture: CVMetalTexture, intoVertext vertexTexture: Texture, with encoder: MTLComputeCommandEncoder) {
@@ -63,12 +61,11 @@ class DepthToVertexRenderer {
     }
     
     func encodeCommands(into commandBuffer: MTLCommandBuffer) {
-        resetVertexTextureAndNormalTexture()
+        if vertexTexture == nil { resetVertexTexture() }
         
         if let depthTexture = depthTexture,
            let confidenceTexture = confidenceTexture,
            let vertexTexture = vertexTexture,
-           let normalTexture = normalTexture,
            let unprojectComputeEncoder = commandBuffer.makeComputeCommandEncoder() {
             // Retain our CVMetalTextures for the duration of the rendering cycle. The MTLTextures
             //   we use from the CVMetalTextures are not valid unless their parent CVMetalTextures
@@ -80,8 +77,6 @@ class DepthToVertexRenderer {
             }
             
             compute(depth: depthTexture, andConfidenceTexture: confidenceTexture ,intoVertext: vertexTexture, with: unprojectComputeEncoder)
-            // TODO: - Compute Normal Texture
-            
         }
     }
 }
@@ -92,7 +87,10 @@ class DepthToVertexRenderer {
 extension DepthToVertexRenderer {
     private func makeUnprojectComputePipelineState() -> MTLComputePipelineState {
         let unprojectFunction = library.makeFunction(name: "unprojectKernel")!
-        let unprojectComputePipelineState = try! device.makeComputePipelineState(function: unprojectFunction)
+        let unprojectComputePipelineDescriptor = MTLComputePipelineDescriptor()
+        unprojectComputePipelineDescriptor.threadGroupSizeIsMultipleOfThreadExecutionWidth = true
+        unprojectComputePipelineDescriptor.computeFunction = unprojectFunction
+        let unprojectComputePipelineState = try! device.makeComputePipelineState(descriptor: unprojectComputePipelineDescriptor, options: [], reflection: nil)
         
         return unprojectComputePipelineState
     }

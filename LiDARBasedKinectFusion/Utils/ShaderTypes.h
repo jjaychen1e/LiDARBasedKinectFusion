@@ -15,17 +15,27 @@
 
 #define CONFIDENCE_THRESHOLD 1
 
-#define TSDF_SIZE 570
+#define TSDF_SIZE 100
 #define TSDF_PER_LENGTH 0.00390625
 #define TSDF_MAX_WEIGHT 512
+
+
+#define MARCHING_CUBE_MIN_ISO_VALUE -1.0
+#define MARCHING_CUBE_ISO_VALUE 0
+#define MARCHING_CUBE_MIN_WEIGHT 100
+#define MARCHING_CUBE_BUFFER_MAX_COUNT 50000000
 
 
 // Buffer index values shared between shader and C code to ensure Metal shader buffer inputs match
 //   Metal API buffer set calls
 typedef enum BufferIndices {
-    kBufferIndexCameraParameterUniforms = 0,
-    kBufferIndexTSDFBox                 = 1,
-    kBufferIndexTSDFParameterUniforms   = 2,
+    kBufferIndexCameraParameterUniforms            = 0,
+    kBufferIndexTSDFBox                            = 1,
+    kBufferIndexTSDFParameterUniforms              = 2,
+    kBufferIndexMarchingCubeTotalValidVoxelCount   = 3,
+    kBufferIndexMarchingCubeGlobalVertex           = 4,
+    kBufferIndexMarchingCubeGlobalNormal           = 5,
+    kBufferIndexMarchingCubeMarchingCubeActiveInfo = 6,
 } BufferIndices;
 
 // Texture index values shared between shader and C code to ensure Metal shader texture indices
@@ -37,6 +47,7 @@ typedef enum TextureIndices {
     kTextureIndexConfidenceMap              = 3,
     kTextureIndexVertexMap                  = 4,
     kTextureIndexNormalMap                  = 5,
+    kTextureOutputTexture                   = 6,
 } TextureIndices;
 
 struct CameraParameterUniforms {
@@ -44,6 +55,7 @@ struct CameraParameterUniforms {
     matrix_float3x3 viewToCamera;
     matrix_float3x3 cameraIntrinsics;
     matrix_float3x3 cameraIntrinsicsInversed;
+    matrix_float4x4 rotatePinholeToARCamera;
     matrix_float4x4 cameraToWorld;
     matrix_float4x4 worldToCamera;
     matrix_float4x4 viewProjectionMatrix;
@@ -68,6 +80,12 @@ struct TSDFParameterUniforms {
 struct TSDFVoxel {
     float value;
     int weight;
+};
+
+struct MarchingCubeActiveInfo {
+    uint voxelIndex;
+    uint voxelNumber; // total voxel number
+//    uint tableIndex;
 };
 
 #endif /* ShaderTypes_h */

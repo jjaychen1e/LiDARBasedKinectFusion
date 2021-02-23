@@ -68,8 +68,11 @@ class TSDFFusionRenderer {
 
 extension TSDFFusionRenderer {
     private func makeTSDFFusionComputePipelineState() -> MTLComputePipelineState {
-        let tsdfFusiontFunction = library.makeFunction(name: "tsdfFusionKernel")!
-        let tsdfFusionComputePipelineState = try! device.makeComputePipelineState(function: tsdfFusiontFunction)
+        let tsdfFusionFunction = library.makeFunction(name: "tsdfFusionKernel")!
+        let tsdfFusionComputePipelineDescriptor = MTLComputePipelineDescriptor()
+        tsdfFusionComputePipelineDescriptor.threadGroupSizeIsMultipleOfThreadExecutionWidth = true
+        tsdfFusionComputePipelineDescriptor.computeFunction = tsdfFusionFunction
+        let tsdfFusionComputePipelineState = try! device.makeComputePipelineState(descriptor: tsdfFusionComputePipelineDescriptor, options: [], reflection: nil)
         
         return tsdfFusionComputePipelineState
     }

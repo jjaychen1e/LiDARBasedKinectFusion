@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BV1-FR-VrT">
-    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <device id="ipad10_9rounded" orientation="landscape" layout="fullscreen" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17703"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
@@ -12,10 +12,24 @@
             <objects>
                 <viewController id="BV1-FR-VrT" customClass="ViewController" customModule="LiDARBasedKinectFusion" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" opaque="NO" contentMode="scaleToFill" id="3se-qz-xqx" customClass="MTKView">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <rect key="frame" x="0.0" y="0.0" width="1180" height="820"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <mtkView contentMode="scaleToFill" colorPixelFormat="BGRA8Unorm" depthStencilPixelFormat="Depth32Float" translatesAutoresizingMaskIntoConstraints="NO" id="ahT-s0-380" userLabel="OutputView">
+                                <rect key="frame" x="0.0" y="0.0" width="1180" height="820"/>
+                            </mtkView>
+                        </subviews>
                         <viewLayoutGuide key="safeArea" id="3C0-cp-GOg"/>
+                        <constraints>
+                            <constraint firstAttribute="bottom" secondItem="ahT-s0-380" secondAttribute="bottom" id="RTB-LS-Vdk"/>
+                            <constraint firstItem="ahT-s0-380" firstAttribute="trailing" secondItem="3se-qz-xqx" secondAttribute="trailing" id="YRB-B3-T8B"/>
+                            <constraint firstItem="ahT-s0-380" firstAttribute="leading" secondItem="3se-qz-xqx" secondAttribute="leading" id="bLP-kT-mPa"/>
+                            <constraint firstItem="ahT-s0-380" firstAttribute="top" secondItem="3se-qz-xqx" secondAttribute="top" id="n93-PD-qh6"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="outputView" destination="ahT-s0-380" id="MTd-ZC-MGQ"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SZV-WD-TEh" sceneMemberID="firstResponder"/>
             </objects>

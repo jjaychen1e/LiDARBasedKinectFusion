@@ -47,7 +47,6 @@ class CameraImageRenderer {
         }
         
         if let renderPassDescriptor = renderDestination.currentRenderPassDescriptor,
-           let currentDrawable = renderDestination.currentDrawable,
            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) {
             
             renderEncoder.label = "CemeraImageRenderEncoder"
@@ -56,9 +55,6 @@ class CameraImageRenderer {
             
             // We're done encoding commands
             renderEncoder.endEncoding()
-            
-            // Schedule a present once the framebuffer is complete using the current drawable
-            commandBuffer.present(currentDrawable)
         }
     }
     

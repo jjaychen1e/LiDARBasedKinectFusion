@@ -12,9 +12,9 @@ using namespace metal;
 #import "ShaderTypes.h"
 
 /// Retrieves the world position of a specified camera point with depth
-static float4 worldSpacePoint(simd_float2 pixelPoint, float depth, simd_float3x3 cameraIntrinsicsInversed, float4x4 cameraToWorld) {
+static float4 worldSpacePoint(simd_float2 pixelPoint, float depth, simd_float3x3 cameraIntrinsicsInversed, float4x4 rotatePinholeToARCamera, float4x4 cameraToWorld) {
     const auto cameraSpacePoint = cameraIntrinsicsInversed * simd_float3(pixelPoint, 1) * depth;
-    const auto worldSpacePoint = cameraToWorld * simd_float4(cameraSpacePoint, 1);
+    const auto worldSpacePoint = cameraToWorld * rotatePinholeToARCamera * simd_float4(cameraSpacePoint, 1);
     
     return worldSpacePoint / worldSpacePoint.w;
 }
@@ -29,12 +29,13 @@ unprojectKernel(constant CameraParameterUniforms      &uniforms         [[buffer
     unsigned int confidence  = confidenceTexture.read(gid).x;
     if (confidence >= CONFIDENCE_THRESHOLD) {
         float depth  = depthTexture.read(gid).x;
-        simd_float2 normalSpacePosition = simd_float2((float)(gid.x) / (depthTexture.get_width() - 1),
-                                                      (float)(gid.y) / (depthTexture.get_height() - 1));
+        simd_float2 normalSpacePosition = simd_float2((gid.x + 0.5) / (depthTexture.get_width()),
+                                                      (gid.y + 0.5) / (depthTexture.get_height()));
         simd_float2 pixelPoint = normalSpacePosition * uniforms.cameraResolution;
         simd_float4 position = worldSpacePoint(pixelPoint,
                                                depth,
                                                uniforms.cameraIntrinsicsInversed,
+                                               uniforms.rotatePinholeToARCamera,
                                                uniforms.cameraToWorld);
         vertexTexture.write(position, gid);
     }

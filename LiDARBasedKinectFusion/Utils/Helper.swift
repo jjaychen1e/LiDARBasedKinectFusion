@@ -22,3 +22,16 @@ extension matrix_float3x3 {
         columns.2 = Float3(0, 0, 1)
     }
 }
+
+extension MTLTexture {
+  func getPixels<T> (_ region: MTLRegion? = nil, mipmapLevel: Int = 0) -> UnsafeMutablePointer<T> {
+    let fromRegion  = region ?? MTLRegionMake2D(0, 0, self.width, self.height)
+    let width       = fromRegion.size.width
+    let height      = fromRegion.size.height
+    let bytesPerRow = MemoryLayout<T>.stride * width
+    let data        = UnsafeMutablePointer<T>.allocate(capacity: bytesPerRow * height)
+
+    self.getBytes(data, bytesPerRow: bytesPerRow, from: fromRegion, mipmapLevel: mipmapLevel)
+    return data
+  }
+}

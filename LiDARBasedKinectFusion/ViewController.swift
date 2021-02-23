@@ -15,6 +15,8 @@ extension MTKView : RenderDestinationProvider {
 
 class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
     
+    @IBOutlet weak var outputView: MTKView!
+    
     var session: ARSession!
     var configuration = ARWorldTrackingConfiguration()
     var renderer: Renderer!
@@ -25,6 +27,8 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
         // Set the view's delegate
         session = ARSession()
         session.delegate = self
+        
+        outputView.device = MTLCreateSystemDefaultDevice()
         
         // Set the view to use the default device
         if let view = self.view as? MTKView {
@@ -38,10 +42,11 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
             }
             
             // Configure the renderer to draw to the view
-            renderer = Renderer(session: session, metalDevice: view.device!, renderDestination: view)
+            renderer = Renderer(session: session, metalDevice: view.device!, renderDestination: view, textureOutputDestination: outputView)
             
             renderer.drawRectResized(size: view.bounds.size)
         }
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -49,6 +54,7 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
         
         // Enable the smoothed scene depth frame-semantic.
         configuration.frameSemantics = .sceneDepth
+        configuration.worldAlignment = .gravity
 
         // Run the view's session
         session.run(configuration)
