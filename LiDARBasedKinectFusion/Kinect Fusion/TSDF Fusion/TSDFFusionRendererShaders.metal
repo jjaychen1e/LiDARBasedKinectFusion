@@ -33,12 +33,13 @@ tsdfFusionKernel(device TSDFVoxel                      *tsdfBox               [[
     cameraPixelPosition /= cameraPixelPosition.z;
     if (cameraPixelPosition.x >= 0 && cameraPixelPosition.x < cameraUniforms.cameraResolution.x &&
         cameraPixelPosition.y >= 0 && cameraPixelPosition.y < cameraUniforms.cameraResolution.y) {
-        simd_float2 uv = (cameraPixelPosition.xy + 0.5) / cameraUniforms.cameraResolution;
-        simd_uint2 point = simd_uint2(uv * simd_float2(depthTexture.get_width(), depthTexture.get_height()));
+        simd_float2 uv = (cameraPixelPosition.xy) / cameraUniforms.cameraResolution;
+        simd_uint2 point = simd_uint2(uv * simd_float2(vertexTexture.get_width(), vertexTexture.get_height()));
         if (confidenceTexture.read(point).x >= CONFIDENCE_THRESHOLD) {
-            float depth = -depthTexture.read(point).x;
-            float normalizedTSDF = clamp((cameraSpaceVoxelPosition.z - depth) / tsdfParameterUniforms.truncateThreshold, -1.0, 1.0);
-//            if (normalizedTSDF <= -0.95 || normalizedTSDF >= 0.95) { return; }
+            float4 depth = vertexTexture.read(point);
+            float tsdf = (worldSpaceVoxelPosition.z - depth.z) / tsdfParameterUniforms.truncateThreshold;
+            if (tsdf < -1.0 || tsdf > 1.0) { return; }
+            float normalizedTSDF = clamp(tsdf, -1.0, 1.0);
             uint index = gid.z * gridSize.x * gridSize.y + gid.y * gridSize.x + gid.x;
             float weight = min(tsdfParameterUniforms.maxWeight, tsdfBox[index].weight + 1);
             tsdfBox[index].value = (tsdfBox[index].value * tsdfBox[index].weight + normalizedTSDF * weight) / (tsdfBox[index].weight + weight);

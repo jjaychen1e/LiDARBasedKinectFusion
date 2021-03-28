@@ -33,7 +33,7 @@ class CameraImageRenderer {
     }
     
     func encodeCommands(into commandBuffer: MTLCommandBuffer) {
-        if let currentFrame = session.currentFrame {
+        if let currentFrame = renderer.currentFrame {
             updateCapturedImageTextures(frame: currentFrame)
         }
         

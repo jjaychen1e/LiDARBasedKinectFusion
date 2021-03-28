@@ -38,6 +38,7 @@ class Renderer {
     // This is the current frame number modulo kMaxBuffersInFlight
     var currentBufferIndex: Int = 0
     private lazy var textureCache = makeTextureCache()
+    var currentFrame: ARFrame?
     
     private lazy var cameraParameterUniforms: CameraParameterUniforms = {
         var cameraParameterUniforms = CameraParameterUniforms()
@@ -71,7 +72,7 @@ class Renderer {
 //        tsdfParameterUniforms.origin = simd_float3(-0.5 * Float(TSDF_SIZE - 1) * Float(TSDF_PER_LENGTH),
 //                                                   -0.5 * Float(TSDF_SIZE - 1) * Float(TSDF_PER_LENGTH),
 //                                                   -(Float(TSDF_SIZE) - 0.5) * Float(TSDF_PER_LENGTH))
-        tsdfParameterUniforms.truncateThreshold = 3 * Float(TSDF_PER_LENGTH)
+        tsdfParameterUniforms.truncateThreshold = 5 * Float(TSDF_PER_LENGTH)
         tsdfParameterUniforms.maxWeight = TSDF_MAX_WEIGHT
         
         let buffer = MetalBuffer<TSDFParameterUniforms>(device: device, count: MemoryLayout<TSDFParameterUniforms>.size, index: kBufferIndexTSDFParameterUniforms.rawValue, label: "TSDFParameterUniformsBuffer", options: .storageModeShared)
@@ -178,6 +179,18 @@ class Renderer {
         cameraParameterUniformsBuffer[currentBufferIndex][0] = cameraParameterUniforms
     }
     
+    private var lastCameraTransform: Float4x4?
+    
+    private func shouldAccumulate(frame: ARFrame) -> Bool {
+        if let lastCameraTransform = lastCameraTransform {
+            let cameraTransform = frame.camera.transform
+            print(distance_squared(cameraTransform.columns.3, lastCameraTransform.columns.3) <= pow(0.0002, 2))
+            return distance_squared(cameraTransform.columns.3, lastCameraTransform.columns.3) <= pow(0.0002, 2)
+        }
+        
+        return false
+    }
+    
     func update() {
         // Wait to ensure only kMaxBuffersInFlight are getting processed by any stage in the Metal
         //   pipeline (App, Metal, Drivers, GPU, etc)
@@ -196,7 +209,10 @@ class Renderer {
             currentBufferIndex = (currentBufferIndex + 1) % kMaxBuffersInFlight
             
             if let currentFrame = session.currentFrame {
+                self.currentFrame = currentFrame
                  updateCameraParameters(currentFrame)
+            } else {
+                self.currentFrame = nil
             }
             
             cameraImageRenderer.encodeCommands(into: commandBuffer)
@@ -209,13 +225,12 @@ class Renderer {
             
 //            print(computeState)
             if computeState == .normal {
-                if frameCount % 2 == 1,
-                   let currentFrame = session.currentFrame {
-                    if updateDepthTextures(frame: currentFrame) {
+                if let currentFrame = self.currentFrame {
+                    if frameCount % 2 == 1, updateDepthTextures(frame: currentFrame), shouldAccumulate(frame: currentFrame) {
                         // Unproject Points
                         depthToVertexRenderer.encodeCommands(into: commandBuffer)
+                        tsdfFusionRenderer.encodeCommands(into: commandBuffer)
                     }
-                    tsdfFusionRenderer.encodeCommands(into: commandBuffer)
                 }
             } else if computeState == .marchingCubeTraverse {
                 totalVertexCount = nil
@@ -239,8 +254,9 @@ class Renderer {
                         for i in 1..<Int(self.totalValidVoxelCount[0]) {
                             self.activeInfoOutput[i].voxelNumber += self.activeInfoOutput[i - 1].voxelNumber;
                         }
-                        self.computeState = .marchingCubeExtract
                         self.totalVertexCount = self.activeInfoOutput[Int(self.totalValidVoxelCount[0]) - 1].voxelNumber
+                        print(self.totalVertexCount)
+                        self.computeState = .marchingCubeExtract
                     }
                 } else {
                     self.computeState = .normal
@@ -258,66 +274,6 @@ class Renderer {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                             strongSelf.readyToProcessMarchingCube = true
                         }
-//                        print(strongSelf.totalVertexCount)
-//                        for z in 0..<Int(TSDF_SIZE) {
-//                            for y in 0..<Int(TSDF_SIZE) {
-//                                for x in 0..<Int(TSDF_SIZE) {
-//                                    var voxel = strongSelf.tsdfBoxBuffer[x + y * Int(TSDF_SIZE) + z * Int(TSDF_SIZE) * Int(TSDF_SIZE)]
-////                                    if voxel.value > 1.0 || voxel.value < -1.0 {
-//                                        print(voxel)
-////                                    }
-//                                }
-//                            }
-//                        }
-                        
-//                        if let depthTexture = CVMetalTextureGetTexture(strongSelf.depthTexture!),
-//                           let confidenceTexture = CVMetalTextureGetTexture(strongSelf.confidenceTexture!) {
-//
-//                            let confidenceTexturePixels: UnsafeMutablePointer<Float32> = confidenceTexture.getPixels()
-//                            let depthTexturePixels: UnsafeMutablePointer<Float32> = depthTexture.getPixels()
-//                            defer {
-//                                confidenceTexturePixels.deallocate()
-//                                depthTexturePixels.deallocate()
-//                            }
-//
-//                            for z in 0..<Int(TSDF_SIZE) {
-//                                for y in 0..<Int(TSDF_SIZE) {
-//                                    for x in 0..<Int(TSDF_SIZE) {
-//                                        let gid = simd_float3(Float(x), Float(y), Float(z))
-//                                        let voxelPositionOffset = gid * strongSelf.tsdfParameterUniformsBuffer[0].sizePerVoxel
-//                                        let worldSpaceVoxelPosition = strongSelf.tsdfParameterUniformsBuffer[0].origin + voxelPositionOffset
-//                                        var cameraSpaceVoxelPosition = strongSelf.cameraParameterUniforms.worldToCamera * simd_float4(worldSpaceVoxelPosition, 1)
-//                                        cameraSpaceVoxelPosition /= cameraSpaceVoxelPosition.w
-//                                        let cameraSpaceVoxelPositionInPinholeModel = strongSelf.cameraParameterUniforms.rotatePinholeToARCamera * cameraSpaceVoxelPosition
-//                                        var cameraPixelPosition = strongSelf.cameraParameterUniforms.cameraIntrinsics * simd_float3(cameraSpaceVoxelPositionInPinholeModel.x, cameraSpaceVoxelPositionInPinholeModel.y, cameraSpaceVoxelPositionInPinholeModel.z) / cameraSpaceVoxelPositionInPinholeModel.z;
-//                                        cameraPixelPosition /= cameraPixelPosition.z;
-//
-//                                        if (cameraPixelPosition.x >= 0 && cameraPixelPosition.x < strongSelf.cameraParameterUniforms.cameraResolution.x &&
-//                                            cameraPixelPosition.y >= 0 && cameraPixelPosition.y < strongSelf.cameraParameterUniforms.cameraResolution.y) {
-//                                            let uv = simd_float2(cameraPixelPosition.x + 0.5, cameraPixelPosition.y + 0.5) / strongSelf.cameraParameterUniforms.cameraResolution;
-//                                            let point = simd_uint2(uv * simd_float2(Float(depthTexture.width), Float(depthTexture.height)));
-//                                            let textureIndex = Int(point.x + point.y * UInt32(depthTexture.width))
-//                                            if (confidenceTexturePixels[textureIndex] >= Float(CONFIDENCE_THRESHOLD)) {
-//                                                let depth = -depthTexturePixels[textureIndex];
-//                                                var tsdf = cameraSpaceVoxelPosition.z - depth
-//                                                if tsdf <= -strongSelf.tsdfParameterUniformsBuffer[0].truncateThreshold {
-//                                                    tsdf = -strongSelf.tsdfParameterUniformsBuffer[0].truncateThreshold
-//                                                } else if tsdf >= strongSelf.tsdfParameterUniformsBuffer[0].truncateThreshold {
-//                                                    tsdf = strongSelf.tsdfParameterUniformsBuffer[0].truncateThreshold
-//                                                }
-//                                                let normalizedTSDF = tsdf / strongSelf.tsdfParameterUniformsBuffer[0].truncateThreshold
-//
-//                                                let index = z * Int(TSDF_SIZE) * Int(TSDF_SIZE) + y * Int(TSDF_SIZE) + x;
-//                                                let weight = min(strongSelf.tsdfParameterUniformsBuffer[0].maxWeight, strongSelf.tsdfBoxBuffer[index].weight + 1);
-//                                                var value = Float(strongSelf.tsdfBoxBuffer[index].value * Float(strongSelf.tsdfBoxBuffer[index].weight) + normalizedTSDF * Float(weight)) / Float(strongSelf.tsdfBoxBuffer[index].weight + weight)
-////                                                tsdfBox[index].weight = weight;
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-                        
                     }
                 }
             }
@@ -328,6 +284,9 @@ class Renderer {
         }
         
         frameCount += 1
+        if let currentFrame = session.currentFrame {
+            lastCameraTransform = currentFrame.camera.transform
+        }
     }
 }
 

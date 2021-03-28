@@ -30,5 +30,5 @@ vertex Vertex outputTextureRendererVertexFuncion (uint                          
 
 fragment float4 outputTextureRendererFragmentFunction (Vertex vertexIn [[stage_in]])
 {
-    return (vertexIn.normal + 1.0) / 2.6;
+    return simd_float4(simd_float3(dot(vertexIn.normal, simd_float4(0.2126, 0.7152, 0.0722, 1))), 1) / 2;
 }
