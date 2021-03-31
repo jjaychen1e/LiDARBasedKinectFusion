@@ -53,7 +53,7 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
         super.viewWillAppear(animated)
         
         // Enable the smoothed scene depth frame-semantic.
-        configuration.frameSemantics = .sceneDepth
+        configuration.frameSemantics = .smoothedSceneDepth
         configuration.worldAlignment = .gravity
 
         // Run the view's session

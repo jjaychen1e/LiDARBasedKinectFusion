@@ -72,7 +72,7 @@ class Renderer {
 //        tsdfParameterUniforms.origin = simd_float3(-0.5 * Float(TSDF_SIZE - 1) * Float(TSDF_PER_LENGTH),
 //                                                   -0.5 * Float(TSDF_SIZE - 1) * Float(TSDF_PER_LENGTH),
 //                                                   -(Float(TSDF_SIZE) - 0.5) * Float(TSDF_PER_LENGTH))
-        tsdfParameterUniforms.truncateThreshold = 5 * Float(TSDF_PER_LENGTH)
+        tsdfParameterUniforms.truncateThreshold = 3 * Float(TSDF_PER_LENGTH)
         tsdfParameterUniforms.maxWeight = TSDF_MAX_WEIGHT
         
         let buffer = MetalBuffer<TSDFParameterUniforms>(device: device, count: MemoryLayout<TSDFParameterUniforms>.size, index: kBufferIndexTSDFParameterUniforms.rawValue, label: "TSDFParameterUniformsBuffer", options: .storageModeShared)
@@ -184,8 +184,8 @@ class Renderer {
     private func shouldAccumulate(frame: ARFrame) -> Bool {
         if let lastCameraTransform = lastCameraTransform {
             let cameraTransform = frame.camera.transform
-            print(distance_squared(cameraTransform.columns.3, lastCameraTransform.columns.3) <= pow(0.0002, 2))
-            return distance_squared(cameraTransform.columns.3, lastCameraTransform.columns.3) <= pow(0.0002, 2)
+            print(distance_squared(cameraTransform.columns.3, lastCameraTransform.columns.3) <= pow(0.001, 2))
+            return distance_squared(cameraTransform.columns.3, lastCameraTransform.columns.3) <= pow(0.001, 2)
         }
         
         return false
@@ -226,7 +226,7 @@ class Renderer {
 //            print(computeState)
             if computeState == .normal {
                 if let currentFrame = self.currentFrame {
-                    if frameCount % 2 == 1, updateDepthTextures(frame: currentFrame), shouldAccumulate(frame: currentFrame) {
+                    if frameCount % 3 == 1, updateDepthTextures(frame: currentFrame), shouldAccumulate(frame: currentFrame) {
                         // Unproject Points
                         depthToVertexRenderer.encodeCommands(into: commandBuffer)
                         tsdfFusionRenderer.encodeCommands(into: commandBuffer)
@@ -255,7 +255,7 @@ class Renderer {
                             self.activeInfoOutput[i].voxelNumber += self.activeInfoOutput[i - 1].voxelNumber;
                         }
                         self.totalVertexCount = self.activeInfoOutput[Int(self.totalValidVoxelCount[0]) - 1].voxelNumber
-                        print(self.totalVertexCount)
+//                        print(self.totalVertexCount)
                         self.computeState = .marchingCubeExtract
                     }
                 } else {
@@ -357,8 +357,8 @@ extension Renderer {
     }
     
     private func updateDepthTextures(frame: ARFrame) -> Bool {
-        guard let depthMap = frame.sceneDepth?.depthMap,
-            let confidenceMap = frame.sceneDepth?.confidenceMap else {
+        guard let depthMap = frame.smoothedSceneDepth?.depthMap,
+            let confidenceMap = frame.smoothedSceneDepth?.confidenceMap else {
                 return false
         }
         
